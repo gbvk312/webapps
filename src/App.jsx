@@ -36,7 +36,7 @@ function App() {
         </div>
       </section>
 
-      {/* Value Proposition */}
+      {/* Features Section */}
       <section id="features" className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold mb-12 text-center">Why Choose Us?</h2>
@@ -57,8 +57,8 @@ function App() {
         </div>
       </section>
 
-      {/* Social Proof */}
-      <section id="social-proof" className="py-20 bg-white">
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold mb-12 text-center">What Our Clients Say</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
