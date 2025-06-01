@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/axios';
 
 function Signup() {
   const [name, setName] = useState('');
@@ -7,16 +8,51 @@ function Signup() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
+
+  const validateForm = () => {
+    if (!name || !email || !password) {
+      setError('All fields are required');
+      return false;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return false;
+    }
+    if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!validateForm()) {
+      return;
+    }
+
     try {
-      await axios.post('http://localhost:5000/api/auth/signup', { name, email, password });
-      setSuccess('Signup successful! You can now log in.');
-      setError('');
+      const response = await api.post('/api/auth/signup', { name, email, password });
+      console.log('Signup response:', response.data);
+      setSuccess('Signup successful! Redirecting to login...');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err) {
-      setError(err.response?.data?.error || 'An error occurred');
-      setSuccess('');
+      console.error('Signup error:', {
+        response: err.response?.data,
+        status: err.response?.status,
+        message: err.message
+      });
+      
+      const errorMessage = err.response?.data?.error || 
+                          (err.response?.data?.details && err.response.data.details.join(', ')) || 
+                          'An error occurred during signup';
+      setError(errorMessage);
     }
   };
 

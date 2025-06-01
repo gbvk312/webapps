@@ -1,25 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/axios';
 
 function Profile() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/api/auth/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await api.get('/api/auth/profile');
         setUser(response.data);
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to fetch user profile');
+        if (err.response?.status === 401) {
+          navigate('/login');
+        }
       }
     };
 
     fetchUserProfile();
-  }, []);
+  }, [navigate]);
 
   if (error) {
     return <p className="text-red-500 text-center mt-6">{error}</p>;

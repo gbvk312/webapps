@@ -7,14 +7,61 @@ const router = express.Router();
 
 // User Signup
 router.post('/signup', async (req, res) => {
+  console.log('Received signup request:', { ...req.body, password: '***' });
   const { name, email, password } = req.body;
+
   try {
+    // Validate input
+    if (!name || !email || !password) {
+      console.log('Missing required fields');
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    if (password.length < 6) {
+      console.log('Password too short');
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      console.log('Email already registered:', email);
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+
+    // Hash password and create user
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ name, email, password: hashedPassword });
+    
+    // Validate user object before saving
+    const validationError = newUser.validateSync();
+    if (validationError) {
+      console.error('Validation error:', validationError);
+      return res.status(400).json({ 
+        error: 'Invalid input data', 
+        details: Object.values(validationError.errors).map(err => err.message)
+      });
+    }
+
+    // Save user
     await newUser.save();
+    console.log('User created successfully:', { id: newUser._id, email });
     res.status(201).json({ message: 'User created successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Error creating user' });
+    console.error('Signup error:', error);
+    
+    if (error.code === 11000) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        error: 'Invalid input data',
+        details: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    
+    res.status(500).json({ error: 'Error creating user. Please try again.' });
   }
 });
 
